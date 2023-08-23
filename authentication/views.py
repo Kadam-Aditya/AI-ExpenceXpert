@@ -47,6 +47,7 @@ class RegistrationView(View):
         username=request.POST['username']
         email=request.POST['email']
         password=request.POST['password']
+        password2=request.POST['password2']
 
         context={
             'fieldValues':request.POST
@@ -57,6 +58,10 @@ class RegistrationView(View):
 
                 if len(password)<6:
                     messages.error(request, 'Password too short')
+                    return render(request, 'authentication/register.html',context)
+                
+                if not str(password)==str(password2):
+                    messages.error(request, 'Password did not match')
                     return render(request, 'authentication/register.html',context)
                 
                 user = User.objects.create_user(username=username, email=email)
@@ -82,7 +87,7 @@ class RegistrationView(View):
                 )
 
                 email.send(fail_silently=False)
-                messages.success(request, 'Account successfully created')
+                messages.success(request, 'Account successfully created, Please check your email to activate your account.')
                 return render(request, 'authentication/register.html')
 
         return render(request, 'authentication/register.html')
