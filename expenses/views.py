@@ -5,9 +5,19 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 import json
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from userpreferences.models import UserPreference
 import datetime
+import csv
+from django.utils.timezone import now
+import csv
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib import colors
+import xlsxwriter
+from io import BytesIO
+
 
 
 def search_expenses(request):
@@ -114,3 +124,108 @@ def delete_expense(request, id):
     expense.delete()
     messages.success(request, 'Expense removed')
     return redirect('expenses')
+
+
+def expense_category_summary(request):
+    todays_date = datetime.date.today()
+    six_months_ago = todays_date-datetime.timedelta(days=30*6)
+    expenses = Expense.objects.filter(owner=request.user,
+                                      date__gte=six_months_ago, date__lte=todays_date)
+    finalrep = {}
+
+    def get_category(expense):
+        return expense.category
+    category_list = list(set(map(get_category, expenses)))
+
+    def get_expense_category_amount(category):
+        amount = 0
+        filtered_by_category = expenses.filter(category=category)
+
+        for item in filtered_by_category:
+            amount += item.amount
+        return amount
+
+    for x in expenses:
+        for y in category_list:
+            finalrep[y] = get_expense_category_amount(y)
+
+    return JsonResponse({'expense_category_data': finalrep}, safe=False)
+
+
+def stats_view(request):
+    return render(request, 'expenses/stats.html')
+
+def export_csv(request):
+    response = HttpResponse(content_type='text/csv')
+    timestamp = now().strftime('%Y-%m-%d_%H-%M-%S')  # Generate a timestamp for the filename
+    response['Content-Disposition'] = f'attachment; filename=Expenses_{timestamp}.csv'
+
+    writer = csv.writer(response)
+    writer.writerow(['Amount', 'Description', 'Category', 'Date'])
+
+    expenses = Expense.objects.filter(owner=request.user)
+
+    for expense in expenses:
+        writer.writerow([expense.amount, expense.description, expense.category, expense.date])
+
+    return response
+
+def export_pdf(request):
+    # Create a response object with PDF content type
+    response = HttpResponse(content_type='application/pdf')
+    timestamp = now().strftime('%Y-%m-%d_%H-%M-%S')  # Generate a timestamp for the filename
+    response['Content-Disposition'] = f'attachment; filename=Expenses_{timestamp}.pdf'
+
+    # Create a PDF document
+    pdf = SimpleDocTemplate(response, pagesize=letter)
+    elements = []
+
+    # Add data to the PDF
+    data = [['Amount', 'Description', 'Category', 'Date']]
+    expenses = Expense.objects.filter(owner=request.user)
+
+    for expense in expenses:
+        data.append([expense.amount, expense.description, expense.category, expense.date])
+
+    table = Table(data)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+
+    elements.append(table)
+    pdf.build(elements)
+
+    return response
+
+def export_excel(request):
+    # Create a BytesIO buffer to write the Excel file to
+    output = BytesIO()
+
+    # Create a new Excel workbook and add a worksheet
+    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+    worksheet = workbook.add_worksheet()
+
+    # Add column headers with bold formatting
+    bold_format = workbook.add_format({'bold': True})
+    worksheet.write_row(0, 0, ['Amount', 'Description', 'Category', 'Date'], bold_format)
+
+    # Add expense data to the worksheet
+    expenses = Expense.objects.filter(owner=request.user)
+    for row_num, expense in enumerate(expenses, 1):
+        worksheet.write_row(row_num, 0, [expense.amount, expense.description, expense.category, expense.date])
+
+    # Close the workbook
+    workbook.close()
+
+    # Create a response object with Excel content type
+    response = HttpResponse(output.getvalue(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    timestamp = now().strftime('%Y-%m-%d_%H-%M-%S')  # Generate a timestamp for the filename
+    response['Content-Disposition'] = f'attachment; filename=Expenses_{timestamp}.xlsx'
+
+    return response
