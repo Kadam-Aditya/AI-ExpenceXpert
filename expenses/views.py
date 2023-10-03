@@ -17,6 +17,13 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from reportlab.lib import colors
 import xlsxwriter
 from io import BytesIO
+import csv
+from openpyxl import Workbook
+from openpyxl.styles import Font
+from django.http import HttpResponse
+from django.utils.timezone import now
+from io import BytesIO
+from openpyxl.utils import get_column_letter 
 
 
 
@@ -203,27 +210,33 @@ def export_pdf(request):
 
     return response
 
-def export_excel(request):
-    # Create a BytesIO buffer to write the Excel file to
-    output = BytesIO()
 
-    # Create a new Excel workbook and add a worksheet
-    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
-    worksheet = workbook.add_worksheet()
+def export_excel(request):
+    # Create a new Excel workbook
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.title = 'Expenses'
 
     # Add column headers with bold formatting
-    bold_format = workbook.add_format({'bold': True})
-    worksheet.write_row(0, 0, ['Amount', 'Description', 'Category', 'Date'], bold_format)
+    bold_format = Font(bold=True)
+    header_row = ['Amount', 'Description', 'Category', 'Date']
+    worksheet.append(header_row)
 
     # Add expense data to the worksheet
     expenses = Expense.objects.filter(owner=request.user)
-    for row_num, expense in enumerate(expenses, 1):
-        worksheet.write_row(row_num, 0, [expense.amount, expense.description, expense.category, expense.date])
+    for expense in expenses:
+        row_data = [expense.amount, expense.description, expense.category, expense.date]
+        worksheet.append(row_data)
 
-    # Close the workbook
-    workbook.close()
+    # Adjust column width for the 'Date' column
+    date_column = worksheet.column_dimensions[get_column_letter(4)]  # Assuming 'Date' is in the 4th column
+    date_column.width = 15  # Adjust the width as needed to display the date properly
 
-    # Create a response object with Excel content type
+    # Create a BytesIO buffer to store the Excel file
+    output = BytesIO()
+    workbook.save(output)
+
+    # Create a response object with Excel content type and file extension
     response = HttpResponse(output.getvalue(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     timestamp = now().strftime('%Y-%m-%d_%H-%M-%S')  # Generate a timestamp for the filename
     response['Content-Disposition'] = f'attachment; filename=Expenses_{timestamp}.xlsx'
