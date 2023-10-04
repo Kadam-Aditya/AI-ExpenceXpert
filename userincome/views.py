@@ -27,7 +27,6 @@ from django.http import HttpResponse
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from reportlab.lib import colors
-import xlsxwriter
 from io import BytesIO
 import csv
 from openpyxl import Workbook
