@@ -35,6 +35,7 @@ from django.http import HttpResponse
 from django.utils.timezone import now
 from io import BytesIO
 from openpyxl.utils import get_column_letter 
+from django.core.exceptions import ObjectDoesNotExist
 # Create your views here.
 
 
@@ -57,7 +58,11 @@ def index(request):
     paginator = Paginator(income, 5)
     page_number = request.GET.get('page')
     page_obj = Paginator.get_page(paginator, page_number)
-    currency = UserPreference.objects.get(user=request.user).currency
+    try:
+        user_preference = UserPreference.objects.get(user=request.user)
+        currency = user_preference.currency
+    except ObjectDoesNotExist:
+        currency = "USD"
     context = {
         'income': income,
         'page_obj': page_obj,
