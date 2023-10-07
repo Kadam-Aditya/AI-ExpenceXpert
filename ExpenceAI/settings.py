@@ -47,6 +47,9 @@ INSTALLED_APPS = [
     'expenses',
     'userpreferences',
     'userincome',
+    'BudgetPlanner',
+    'FinanceNews',
+    'InvestmentSuggestions',
 ]
 
 MIDDLEWARE = [
