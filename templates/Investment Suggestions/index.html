@@ -24,9 +24,25 @@
     </div>
 
   </div>
+  <h2 class="font-weight-bold"> Stock Market Prediction and Analysis</h2>
+
+  <form action="result">
+    {% csrf_token %}
+    {% include 'partials/_messages.html' %}
+    <div class="form-group">
+        <input 
+          type="text"
+          name="stockname"
+          placeholder="Enter stock name"
+          required
+        />
+    </div>
+    <input type="Submit" value="Predict" class="btn btn-primary submit-btn">
+</form>
 
  </div>
 </div>
+
 
 
 {% endblock content %}
