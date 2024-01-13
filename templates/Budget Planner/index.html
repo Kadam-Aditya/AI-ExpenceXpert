@@ -24,9 +24,44 @@
     </div>
 
   </div>
+  <h2 class="font-weight-bold"> Enter your Budget</h2>
+
+  <form action="">
+    {% csrf_token %}
+    {% include 'partials/_messages.html' %}
+    <div class="form-group">
+        <input 
+          type="text"
+          name="budget"
+          placeholder="Enter budget"
+          required
+        />
+    </div>
+    <h2 class="font-weight-bold"> Enter Timespan:</h2>
+    <div class="form-group">
+      <label for="">Start date</label>
+      <input
+        type="date"
+        class="form-control form-control-sm"
+        name="startbudget_date"
+        value="{{values.date |date:'Y-m-d' }}"
+      />
+    </div>
+    <div class="form-group">
+      <label for="">End date</label>
+      <input
+        type="date"
+        class="form-control form-control-sm"
+        name="endbudget_date"
+        value="{{values.date |date:'Y-m-d' }}"
+      />
+    </div>
+    <input type="Submit" value="Plan Budget" class="btn btn-primary submit-btn">
+</form>
 
  </div>
 </div>
+
 
 
 {% endblock content %}

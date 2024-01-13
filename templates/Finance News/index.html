@@ -1,8 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
 
-
-
 {% block content %}
 <div class="container mt-4">
   <div class="row">
@@ -10,23 +8,33 @@
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
           <li class="breadcrumb-item">
-            <a href="">Finance News</a>
+            <a href="#">Finance News</a>
           </li>
           <li class="breadcrumb-item active" aria-current="page">
-           My Favourite
+            My Favorites
           </li>
         </ol>
       </nav>
     </div>
 
     <div class="col-md-2">
-      <a href="" class="btn btn-primary">BACK</a>
+      <a href="#" class="btn btn-primary">BACK</a>
     </div>
-
   </div>
 
- </div>
+  <h1>Headlines</h1>
+
+  <div class="container">
+    {% for news, des, image in mylist %}
+      <div>
+        <h2>News:</h2>
+        <h4>{{ news|upper|linebreaks }}</h4>
+        <img src="{{ image }}" alt="" width="1000" height="500">
+        <h4>Description:</h4>
+        <p>{{ des|linebreaks|truncatechars:150 }}</p>
+        <a href="#">Read more</a>
+      </div>
+    {% endfor %}
+  </div>
 </div>
-
-
 {% endblock content %}
