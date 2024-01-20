@@ -22,19 +22,39 @@
     </div>
   </div>
 
+  <div class="row mt-3">
+    <div class="col-md-12">
+      <form method="get" action="{% url 'Finance News' %}">
+        <label for="news-source">Select News Source:</label>
+        <select id="news-source" name="news-source" class="form-control" onchange="this.form.submit()">
+          <option value="" {% if selected_source == '' %}selected{% endif %}>Select</option>
+          <option value="associated-press" {% if selected_source == 'associated-press' %}selected{% endif %}>Associated Press</option>
+          <option value="bbc-news" {% if selected_source == 'bbc-news' %}selected{% endif %}>BBC News</option>
+          <option value="bloomberg" {% if selected_source == 'bloomberg' %}selected{% endif %}>Bloomberg</option>
+          <option value="business-insider" {% if selected_source == 'business-insider' %}selected{% endif %}>Business Insider</option>
+          <option value="crypto-coins-news" {% if selected_source == 'crypto-coins-news' %}selected{% endif %}>Crypto Coins News</option>
+          <option value="fox-news" {% if selected_source == 'fox-news' %}selected{% endif %}>Fox News</option>
+          <option value="fortune" {% if selected_source == 'fortune' %}selected{% endif %}>Fortune</option>
+        </select>
+      </form>
+    </div>
+  </div>
+  
+
   <h1>Headlines</h1>
 
   <div class="container">
     {% for news, des, image in mylist %}
-      <div>
-        <h2>News:</h2>
-        <h4>{{ news|upper|linebreaks }}</h4>
+      <div style="border-bottom: 1px solid #ccc; padding-bottom: 20px; margin-bottom: 20px;">
+        <h2>{{ news|upper|linebreaks }}</h2>
         <img src="{{ image }}" alt="" width="1000" height="500">
         <h4>Description:</h4>
-        <p>{{ des|linebreaks|truncatechars:150 }}</p>
-        <a href="#">Read more</a>
+        <p style="font-size: 50px !important;">{{ des|linebreaks }}</p>
+        <a href="https://www.bbc.com/news/business">Read more</a>
       </div>
     {% endfor %}
   </div>
+  
+  
 </div>
 {% endblock content %}

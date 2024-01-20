@@ -6,6 +6,8 @@ from django.contrib.auth.models import User
 class UserPreference(models.Model):
     user = models.OneToOneField(to=User, on_delete=models.CASCADE)
     currency = models.CharField(max_length=255, blank=True, null=True)
+    risk_preference = models.CharField(max_length=10, blank=True, null=True)
+    investment_goal = models.CharField(max_length=20, blank=True, null=True)
 
     def __str__(self):
         return str(user)+'s' + 'preferences'

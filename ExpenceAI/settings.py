@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     'BudgetPlanner',
     'FinanceNews',
     'InvestmentSuggestions',
+    'AiChatbot',
+    'Account',
 ]
 
 MIDDLEWARE = [

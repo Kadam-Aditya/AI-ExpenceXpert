@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-10">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a href="">AI Chatbot</a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">
+           Financial AI Assistant
+          </li>
+        </ol>
+      </nav>
+    </div>
+
+    <div class="col-md-2">
+      <a href="" class="btn btn-primary">BACK</a>
+    </div>
+
+  </div>
+  <h2 class="font-weight-bold"> How can I help you today?</h2>
+
+  <form action="result">
+    {% csrf_token %}
+    {% include 'partials/_messages.html' %}
+    <div class="container mt-4">
+        <form class="needs-validation" novalidate>
+            <div class="input-group">
+                <input 
+                    type="text"
+                    class="form-control col-xl-8 mr-3"
+                    name="chat"
+                    placeholder="Type your message here..."
+                    required
+                />
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">Send</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+</form>
+
+ </div>
+</div>
+
+
+
+{% endblock content %}

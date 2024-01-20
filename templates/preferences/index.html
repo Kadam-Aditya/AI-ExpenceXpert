@@ -1,22 +1,30 @@
-{% extends 'base.html'%} {% block content %}
+{% extends 'base.html'%}
+{% block content %}
 
-<div class="container mt-3">
-  <h5>Preferred Currency</h5>
+<style>
+    
+    .section-container {
+        margin-bottom: 40px; 
+    }
+</style>
+
+
+<div class="container mt-3 section-container">
   {% include 'partials/_messages.html' %}
-  <form action="{% url 'preferences'%}" method="post">
+  <h5>Preferred Currency</h5>
+  <form action="{% url 'preferences' %}" method="post">
     {% csrf_token %}
     <div class="input-group">
       <select name="currency" class="custom-select" id="inputGroupSelect04">
-        {% if user_preferences.currency%}
-        <option name="currency" selected value="{{user_preferences.currency}}"
-          >{{user_preferences.currency}}</option
-        >
-        {% endif %} {% for currency in currencies %}
-
-        <option name="currency" value="{{currency.name}} - {{currency.value}}"
-          >{{currency.name}} - {{currency.value}}
+        {% if user_preferences.currency %}
+        <option name="currency" selected value="{{ user_preferences.currency }}">
+          {{ user_preferences.currency }}
         </option>
-
+        {% endif %}
+        {% for currency in currencies %}
+        <option name="currency" value="{{ currency.name }} - {{ currency.value }}">
+          {{ currency.name }} - {{ currency.value }}
+        </option>
         {% endfor %}
       </select>
       <div class="input-group-append">
@@ -26,6 +34,56 @@
   </form>
 </div>
 
-<hr />
+<hr class="section-container" />
+
+<div class="container mt-3 section-container">
+  <h5>Risk Preference</h5>
+  <form method="post" action="{% url 'update_risk_preference' %}">
+    {% csrf_token %}
+    <div class="input-group">
+        <select name="risk_preference" class="custom-select" id="inputGroupSelect04">
+            {% if user_preferences.risk_preference %}
+                <option selected value="{{ user_preferences.risk_preference }}">
+                    {{ user_preferences.risk_preference }}
+                </option>
+            {% endif %}
+            {% for risk_preference in risk_options %}
+                <option value="{{ risk_preference }}">
+                    {{ risk_preference }}
+                </option>
+            {% endfor %}
+        </select>
+        <div class="input-group-append">
+            <input class="btn btn-outline-secondary" type="submit" value="Save" />
+        </div>
+    </div>
+  </form>
+</div>
+
+<hr class="section-container" />
+
+<div class="container mt-3 section-container">
+  <h5>Investment goal</h5>
+  <form method="post" action="{% url 'update_investment_goal' %}">
+    {% csrf_token %}
+    <div class="input-group">
+        <select name="investment_goal" class="custom-select" id="inputGroupSelect04">
+            {% if user_preferences.investment_goal %}
+                <option selected value="{{ user_preferences.investment_goal }}">
+                    {{ user_preferences.investment_goal }}
+                </option>
+            {% endif %}
+            {% for investment_goal in goal_options %}
+                <option value="{{ investment_goal }}">
+                    {{ investment_goal }}
+                </option>
+            {% endfor %}
+        </select>
+        <div class="input-group-append">
+            <input class="btn btn-outline-secondary" type="submit" value="Save" />
+        </div>
+    </div>
+  </form>
+</div>
 
 {% endblock %}

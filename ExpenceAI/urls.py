@@ -26,5 +26,7 @@ urlpatterns = [
     path('Budget Planner/', include('BudgetPlanner.urls')),
     path('Finance News/', include('FinanceNews.urls')),
     path('Investment Suggestions/', include('InvestmentSuggestions.urls')),
+    path('AI Chatbot/', include('AiChatbot.urls')),
+    path('Account/', include('Account.urls')),
     path('admin/', admin.site.urls),
 ]
