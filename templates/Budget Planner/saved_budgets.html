@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-10">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a href="{% url 'Budget Planner'%}">Budget Planner</a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">
+            <a href="{% url 'budget'%}">Manual budget</a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">
+            Saved budgets
+          </li>
+        </ol>
+      </nav>
+    </div>
+
+    <div class="col-md-2">
+      <a href="{% url 'Budget Planner'%}" class="btn btn-primary">BACK</a>
+    </div>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>Saved Budgets</h1>
+                <ul>
+                    {% for budget in saved_budgets %}
+                        <li>
+                            {{ budget.budget_title }}
+                            <form method="post" action="{% url 'Saved Budgets1' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="start_date" value="{{ budget.start_date }}">
+                                <input type="hidden" name="end_date" value="{{ budget.end_date }}">
+                                <input type="hidden" name="total_budget" value="{{ budget.total_budget }}">
+                                <input type="hidden" name="budget_title" value="{{ budget.budget_title }}">
+                                <button type="submit" class="btn btn-primary">Generate Report</button>
+                            </form>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+  </div>
+
+{% endblock content %}

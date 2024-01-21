@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-10">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a href="{% url 'Budget Planner'%}">Budget Planner</a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">
+            Manual budget
+          </li>
+        </ol>
+      </nav>
+    </div>
+
+    <div class="col-md-2">
+      <a href="{% url 'Budget Planner'%}" class="btn btn-primary">BACK</a>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <a href="{% url 'Saved Budgets'%}" class="btn btn-primary">Saved budgets</a>
+  </div>
+
+  {% if error_message %}
+    <div class="alert alert-danger mt-3" role="alert">
+      {{ error_message }}
+    </div>
+  {% endif %}
+
+
+  <form method="post" action="{% url 'budget' %}" id="budgetForm">
+    {% csrf_token %}
+
+    <div class="form-row mt-3">
+        <div class="col-md-3">
+          <label for="start_date">Start Date:</label>
+          <input type="date" class="form-control" id="start_date" name="start_date" required>
+        </div>
+        <div class="col-md-3">
+          <label for="end_date">End Date:</label>
+          <input type="date" class="form-control" id="end_date" name="end_date" required>
+        </div>
+        <div class="col-md-3">
+          <label for="total_budget">Enter Total Budget:</label>
+          <input type="text" class="form-control" id="total_budget" name="total_budget" required>
+        </div>
+        <div class="col-md-3">
+            <label for="budget_title">Budget Title:</label>
+            <input type="text" class="form-control" id="budget_title" name="budget_title" required>
+          </div>
+      </div>
+
+      <div class="form-row mt-5">
+        <h3 class="mt-4">(Optional)</h3>
+      </div>
+
+    <h3 class="mt-2">Allot a budget to each category:</h3>
+    <div class="form-row">
+      <div class="col-md-3">
+        <label for="education_budget">Education Budget:</label>
+        <input type="text" class="form-control" id="education_budget" name="education_budget" >
+      </div>
+      <div class="col-md-3">
+        <label for="medical_budget">Medical Budget:</label>
+        <input type="text" class="form-control" id="medical_budget" name="medical_budget" >
+      </div>
+      <div class="col-md-3">
+        <label for="food_budget">Food Budget:</label>
+        <input type="text" class="form-control" id="food_budget" name="food_budget" >
+      </div>
+      <div class="col-md-3">
+        <label for="entertainment_budget">Entertainment Budget:</label>
+        <input type="text" class="form-control" id="entertainment_budget" name="entertainment_budget" >
+      </div>
+      <div class="col-md-3">
+        <label for="transport_budget">Transport Budget:</label>
+        <input type="text" class="form-control" id="transport_budget" name="transport_budget">
+      </div>
+      <div class="col-md-3">
+        <label for="personal_care_budget">Personal Care Budget:</label>
+        <input type="text" class="form-control" id="personal_care_budget" name="personal_care_budget">
+      </div>
+      <div class="col-md-3">
+        <label for="housing_bills_budget">Housing/Bills Budget:</label>
+        <input type="text" class="form-control" id="housing_bills_budget" name="housing_bills_budget">
+      </div>
+    </div>
+
+    <div class="form-row mt-3">
+      <div class="col-md-3">
+        <button type="submit" class="btn btn-primary">Generate Report</button>
+      </div>
+    </div>
+  </form>
+
+
+
+{% endblock content %}

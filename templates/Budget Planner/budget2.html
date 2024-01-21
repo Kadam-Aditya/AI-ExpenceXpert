@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-10">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a href="{% url 'Budget Planner'%}">Budget Planner</a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">
+            <a href="{% url 'budget'%}">Manual budget</a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">
+            My Budget
+          </li>
+        </ol>
+      </nav>
+    </div>
+
+    <div class="col-md-2">
+      <a href="{% url 'Budget Planner'%}" class="btn btn-primary">BACK</a>
+    </div>
+  </div>
+
+  {% if error_message %}
+    <div class="alert alert-danger mt-3" role="alert">
+      {{ error_message }}
+    </div>
+  {% endif %}
+
+  {% if total_expenses is not None %}
+  <h2>{{ budget_title }}</h2>
+  </div>
+    <div class="mt-4">
+      <h4>Total Expenses from {{ start_date }} to {{ end_date }}:</h4>
+      <p class="font-weight-bold text-success">{{ total_expenses }}</p>
+    </div>
+    <div class="mt-4">
+      <h4>Budget Remaining:</h4>
+      <p class="font-weight-bold text-info">{{ budget_remaining }}</p>
+    </div>
+    <div class="mt-4">
+      <h4>Total Budget:</h4>
+      <p class="font-weight-bold text-primary">{{ total_budget }}</p>
+    </div>
+    <div class="mt-4">
+      <h4>Expense Breakdown by Category:</h4>
+      <ul id="expenseList" class="list-group">
+        {% for category, expenses in expenses_by_category.items %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ category }}
+            <span class="badge badge-primary badge-pill">{{ expenses }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+  <div class="mt-4">
+    <h4>Alloted budget for Education:</h4>
+    <p class="font-weight-bold text-info">{{ education_budget }}</p>
+  </div>
+  <div class="mt-4">
+    <h4>Alloted budget for Medical:</h4>
+    <p class="font-weight-bold text-primary">{{ medical_budget }}</p>
+  </div>
+  <div class="mt-4">
+    <h4>Alloted budget for Food:</h4>
+    <p class="font-weight-bold text-primary">{{ food_budget }}</p>
+  </div>
+  <div class="mt-4">
+    <h4>Alloted budget for Entertainment:</h4>
+    <p class="font-weight-bold text-primary">{{ entertainment_budget }}</p>
+  </div>
+  <div class="mt-4">
+    <h4>Alloted budget for Transport:</h4>
+    <p class="font-weight-bold text-primary">{{ transport_budget }}</p>
+  </div>
+  <div class="mt-4">
+    <h4>Alloted budget for Personal Care:</h4>
+    <p class="font-weight-bold text-primary">{{ personal_care_budget }}</p>
+  </div>
+  <div class="mt-4">
+    <h4>Alloted budget for Housing/Bills:</h4>
+    <p class="font-weight-bold text-primary">{{ housing_bills_budget }}</p>
+  </div>
+    
+    <!-- Add an empty canvas element for the Chart.js chart -->
+    <div class="mt-4">
+      <h4>Expense Chart:</h4>
+      <canvas id="expenseChart" width="400" height="200"></canvas>
+    </div>
+  {% endif %}
+</div>
+
+
+{% endblock content %}

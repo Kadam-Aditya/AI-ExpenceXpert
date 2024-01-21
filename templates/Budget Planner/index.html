@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="container mt-4">
-  <div class="row">
+  <div class="row text-center">
     <div class="col-md-10">
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -20,94 +20,18 @@
     <div class="col-md-2">
       <a href="" class="btn btn-primary">BACK</a>
     </div>
-  </div>
 
-  {% if error_message %}
-    <div class="alert alert-danger mt-3" role="alert">
-      {{ error_message }}
+    <div class="col-md-12" style="margin-top: 100px;"> 
+      <h1 class="mb-4">Select the type of budget</h1>
     </div>
-  {% endif %}
 
-  <form method="post" action="{% url 'generate_report' %}" id="budgetForm">
-    {% csrf_token %}
-    <div class="form-row mt-3">
-      <div class="col-md-3">
-        <label for="start_date">Start Date:</label>
-        <input type="date" class="form-control" id="start_date" name="start_date" required>
-      </div>
-      <div class="col-md-3">
-        <label for="end_date">End Date:</label>
-        <input type="date" class="form-control" id="end_date" name="end_date" required>
-      </div>
-      <div class="col-md-3">
-        <label for="budget">Enter Budget:</label>
-        <input type="text" class="form-control" id="budget" name="budget" required>
-      </div>
-      <div class="col-md-3">
-        <button type="submit" class="btn btn-primary mt-4">Generate Report</button>
-      </div>
-    </div>
-  </form>
-
-  {% if total_expenses is not None %}
-    <div class="mt-4">
-      <h4>Total Expenses from {{ start_date }} to {{ end_date }}:</h4>
-      <p class="font-weight-bold text-success">{{ total_expenses }}</p>
-    </div>
-    <div class="mt-4">
-      <h4>Budget Remaining:</h4>
-      <p class="font-weight-bold text-info">{{ budget_remaining }}</p>
-    </div>
-    <div class="mt-4">
-      <h4>Total Budget:</h4>
-      <p class="font-weight-bold text-primary">{{ total_budget }}</p>
-    </div>
-    <div class="mt-4">
-      <h4>Expense Breakdown by Category:</h4>
-      <ul id="expenseList" class="list-group">
-        {% for category, expenses in expenses_by_category.items %}
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            {{ category }}
-            <span class="badge badge-primary badge-pill">{{ expenses }}</span>
-          </li>
-        {% endfor %}
-      </ul>
+    <div class="col-md-6 mt-3">
+      <a href="{% url 'ai_budget' %}" class="btn btn-primary btn-block">AI Budget</a>
     </div>
     
-    <!-- Add an empty canvas element for the Chart.js chart -->
-    <div class="mt-4">
-      <h4>Expense Chart:</h4>
-      <canvas id="expenseChart" width="400" height="200"></canvas>
+    <div class="col-md-6 mt-3">
+      <a href="{% url 'budget' %}" class="btn btn-primary btn-block">Manual Budget</a>
     </div>
-  {% endif %}
+  </div>
 </div>
-
-<script>
-  // Pass expenses_by_category data to JavaScript
-  var expensesData = {{ expenses_by_category|json_script }};
-
-  // Create a bar chart using Chart.js
-  var ctx = document.getElementById('expenseChart').getContext('2d');
-  var myChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: Object.keys(expensesData),
-      datasets: [{
-        label: 'Expense Amount',
-        data: Object.values(expensesData),
-        backgroundColor: 'rgba(75, 192, 192, 0.5)',
-        borderColor: 'rgba(75, 192, 192, 1)',
-        borderWidth: 1
-      }]
-    },
-    options: {
-      scales: {
-        y: {
-          beginAtZero: true
-        }
-      }
-    }
-  });
-</script>
-
 {% endblock content %}
