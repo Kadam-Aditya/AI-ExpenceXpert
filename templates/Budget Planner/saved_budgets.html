@@ -32,12 +32,21 @@
                         <li>
                             {{ budget.budget_title }}
                             <form method="post" action="{% url 'Saved Budgets1' %}">
+                              {% csrf_token %}
+                              <input type="hidden" name="budget_id" value="{{ budget.id }}">
+                              <input type="hidden" name="start_date" value="{{ budget.start_date }}">
+                              <input type="hidden" name="end_date" value="{{ budget.end_date }}">
+                              <input type="hidden" name="total_budget" value="{{ budget.total_budget }}">
+                              <input type="hidden" name="budget_title" value="{{ budget.budget_title }}">
+                              <button type="submit" class="btn btn-primary">Generate Report</button>
+                          </form>
+                            
+                            <a href="{% url 'edit_budget' budget.id %}" class="btn btn-warning">Edit</a>
+
+                            <!-- Add a delete button for each saved budget -->
+                            <form method="post" action="{% url 'delete_budget' budget.id %}">
                                 {% csrf_token %}
-                                <input type="hidden" name="start_date" value="{{ budget.start_date }}">
-                                <input type="hidden" name="end_date" value="{{ budget.end_date }}">
-                                <input type="hidden" name="total_budget" value="{{ budget.total_budget }}">
-                                <input type="hidden" name="budget_title" value="{{ budget.budget_title }}">
-                                <button type="submit" class="btn btn-primary">Generate Report</button>
+                                <button type="submit" class="btn btn-danger">Delete</button>
                             </form>
                         </li>
                     {% endfor %}
@@ -46,5 +55,5 @@
         </div>
     </div>
   </div>
-
+</div>
 {% endblock content %}

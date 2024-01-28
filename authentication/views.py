@@ -58,8 +58,34 @@ class RegistrationView(View):
         if not User.objects.filter(username=username).exists():
             if not User.objects.filter(email=email).exists():
 
+                SpecialSym = ['$', '@', '#', '%']
+                val = True
+
                 if len(password)<6:
                     messages.error(request, 'Password too short')
+                    return render(request, 'authentication/register.html',context)
+                
+                if len(password)>20:
+                    messages.error(request, 'Password too long')
+                    return render(request, 'authentication/register.html',context)
+                
+                if not any(char.isdigit() for char in password):
+                    messages.error(request, 'Password should contain atlest one number')
+                    return render(request, 'authentication/register.html',context)
+                
+                if not any(char.islower() for char in password):
+                    messages.error(request, 'Password should contain atlest one lowercase letter')
+                    return render(request, 'authentication/register.html',context)
+                
+                if not any(char.isupper() for char in password):
+                    messages.error(request, 'Password should contain atlest one uppercase letter')
+                    return render(request, 'authentication/register.html',context)
+                
+                if not any(char in SpecialSym for char in password):
+                    messages.error(request, 'Password should contain atlest one of the symbols $@#%')
+                    val = False
+                if val:
+                    return val
                     return render(request, 'authentication/register.html',context)
                 
                 if not str(password)==str(password2):

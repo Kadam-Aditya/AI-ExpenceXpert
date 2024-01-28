@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import generate_report_view,ai_view,saved_budgets_view,saved_budgets_view1
+from .views import generate_report_view, ai_view, saved_budgets_view, saved_budgets_view1, delete_budget
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -11,4 +11,6 @@ urlpatterns = [
     path('Budget Planner/budget', generate_report_view,name="budget"),
     path('Budget Planner/Saved Budgets', saved_budgets_view, name="Saved Budgets"),
     path('Budget Planner/Saved Budgets1', saved_budgets_view1, name="Saved Budgets1"),
+    path('delete_budget/<int:budget_id>/', delete_budget, name='delete_budget'),
+    path('edit_budget/<int:budget_id>/', views.edit_budget, name='edit_budget'),
 ]
