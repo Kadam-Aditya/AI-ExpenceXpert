@@ -1,10 +1,30 @@
 from datetime import datetime
+import os
+from pathlib import Path
+import pickle
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
 from .models import Expense
 from .models import ReportDate
+import pandas as pd
+from statsmodels.tsa.arima.model import ARIMA
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+import matplotlib.pyplot as plt
+from joblib import load
+from datetime import timedelta
+from statsmodels.tsa.arima.model import ARIMA
+from sklearn.model_selection import train_test_split
+import base64
+import joblib
+import io
+import pandas as pd
+from statsmodels.tsa.statespace.sarimax import SARIMAX
 
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+print(pd.__version__)
 
 
 def calculate_total_expenses(user, start_date, end_date):
@@ -166,6 +186,7 @@ def index(request):
 def ai_view(request):
     return render(request, 'Budget Planner/ai_budget.html')
 
+
 def saved_budgets_view(request):
     saved_budgets = ReportDate.objects.filter(user=request.user)
     return render(request, 'Budget Planner/saved_budgets.html', {'saved_budgets': saved_budgets})
@@ -198,3 +219,108 @@ def edit_budget(request, budget_id):
     return render(request, 'Budget Planner/edit_budget.html', {'budget': budget})
 
 
+hyperparameters_dict = {
+    'p': 2,
+    'd': 1,
+    'q': 5,
+}
+
+# model = load('D:/ExpenceXpert/ExpenceAI/ARIMA_Model/model.joblib')
+models_path = Path('D:/ExpenceXpert/ExpenceAI/ARIMA_Model/models_dict_aggregated.pkl')
+params_path = Path('D:/ExpenceXpert/ExpenceAI/ARIMA_Model/best_params_dict_aggregated.pkl')
+
+with open(models_path, 'rb') as models_file:
+    models_dict = pickle.load(models_file)
+
+with open(params_path, 'rb') as params_file:
+    best_params_dict = pickle.load(params_file)
+
+def generate_budget_plan(user_expenses):
+    # model_path = 'D:/ExpenceXpert/ExpenceAI/ARIMA_Model/models_dict_aggregated.pkl'
+    # model = joblib.load(model_path)
+    user_expenses['date'] = pd.to_datetime(user_expenses['date'])
+    
+    if 'category' in user_expenses.columns:
+        categories = user_expenses['category'].unique()
+        print(categories)
+        predictions = {}
+
+        try:
+
+            for category in categories:
+                print(f"Predicting with ARIMA model for category: {category}")
+
+                category_data = user_expenses[user_expenses['category'] == category]
+                ts_data_aggregated_category = category_data.resample('W', on='date')['amount'].sum()
+                print(ts_data_aggregated_category)
+
+
+
+                # results = models_dict[category].filter(ts_data_aggregated_category.index.min(), ts_data_aggregated_category.index.max())
+                results = models_dict[category]
+                print('results',results)
+                print(results.summary())
+                # forecast = results.get_forecast(steps=7) 
+                forecast = results.get_prediction(start=ts_data_aggregated_category.index.min(),
+                                                  end=ts_data_aggregated_category.index.max() + pd.Timedelta(days=6))
+                predicted_values = forecast.predicted_mean.astype(int)
+                print('predicted',predicted_values)
+
+                fig, ax = plt.subplots(figsize=(10, 6))
+                ax.plot(ts_data_aggregated_category.index, ts_data_aggregated_category, label='User Expenses (Aggregated)')
+                ax.plot(predicted_values.index, predicted_values, label='Predicted Values (Aggregated)')
+                ax.set_title(f"{category} - ARIMA Model with Time Series Aggregation")
+                ax.set_xlabel('Date')
+                ax.set_ylabel('Amount')
+                ax.legend()
+
+                canvas = FigureCanvasAgg(fig)
+                buf = io.BytesIO()
+                canvas.print_png(buf)
+                buf.seek(0)
+
+                # Convert the image to base64
+                encoded_image = base64.b64encode(buf.read()).decode('utf-8')
+
+                predictions[category] = {
+                    'user_expenses': ts_data_aggregated_category.tolist(),
+                    'predicted_values': predicted_values,
+                    'plot_image': encoded_image
+                }
+
+        except Exception as e:
+            print(f"Error predicting with ARIMA model: {e}")
+            return {'error': str(e)}
+
+        finally:
+            plt.close()
+
+        return predictions
+    else:
+        return {'error': 'Category column not found in the DataFrame'}
+
+
+def budget_planner(request):
+    # Assuming you have a form for user input or retrieve expenses from the database
+    # In this example, I'm assuming you have a model named Expense
+    user_expenses = Expense.objects.all().values('date', 'category', 'amount')
+
+    # Convert user_expenses to a DataFrame
+    user_expenses_df = pd.DataFrame(user_expenses)
+
+    # Pass user expenses to the ARIMA model to get predictions
+    predictions = generate_budget_plan(user_expenses_df)
+
+    if 'error' in predictions:
+        # Handle the case where the 'category' column is not found
+        return render(request, 'Budget Planner/ai_budget_result.html', {'error_message': predictions['error']})
+    else:
+        # Render the template with predictions
+        return render(request, 'Budget Planner/ai_budget_result.html', {'predictions': predictions})
+
+
+def generate_weekly_view(request):
+    return render(request, 'Budget Planner/ai_weekly_result.html')
+
+def generate_monthly_view(request):
+    return render(request, 'Budget Planner/ai_monthly_result.html')

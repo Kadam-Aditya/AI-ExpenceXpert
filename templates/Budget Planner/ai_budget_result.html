@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-10">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a href="{% url 'Budget Planner'%}">Budget Planner</a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">
+            <a href="{% url 'ai_budget'%}">AI budget</a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">
+            AI Monthly budget
+          </li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-md-10">
+      <h2>Predictions</h2>
+      
+      {% for category, prediction_info in predictions.items %}
+        <div class="card mt-3">
+          <div class="card-header">
+            <h2>{{ category }}</h2>
+          </div>
+          <div class="card-body">
+            {% if 'error' in prediction_info %}
+              <p class="text-danger">Error: {{ prediction_info.error }}</p>
+            {% else %}
+              <p>Forecast for the next seven days:</p>
+              <ul>
+                {% for key, value in prediction_info.predicted_values.items %}
+                  <li>{{ key }}: {{ value }}</li>
+                {% endfor %}
+              </ul>
+              {% if prediction_info.plot_image %}
+                <img src="data:image/png;base64,{{ prediction_info.plot_image }}" alt="{{ category }} Plot" class="img-fluid">
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock content %}

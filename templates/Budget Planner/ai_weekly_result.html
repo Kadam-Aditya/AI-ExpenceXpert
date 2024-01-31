@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row text-center">
+    <div class="col-md-10">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a href="{% url 'Budget Planner'%}">Budget Planner</a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">
+            <a href="{% url 'ai_budget'%}">AI budget</a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">
+            AI Weekly budget
+          </li>
+        </ol>
+      </nav>
+    </div>
+
+    <div class="col-md-2">
+      <a href="" class="btn btn-primary">BACK</a>
+    </div>
+
+    <div class="col-md-12" style="margin-top: 100px;"> 
+      <h1 class="mb-4">Weekly budget</h1>
+    </div>
+
+  </div>
+</div>
+{% endblock content %}

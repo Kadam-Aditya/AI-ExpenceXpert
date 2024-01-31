@@ -22,5 +22,19 @@
     </div>
   <h1>Automated budget using machine learning
   </div>
+  <p>Note: AI Budget will generate a weekly budget plan on the basis of your expences and will give you 
+    total budget as well as budget for each category for the next week.
+    And for this to work accurately you need to atleast add expences of last 30 days.
+    You can generate a budget plan for a month as well as for a week.
+  </p>
+  <div class="col-md-6 mt-3">
+    <a href="{% url 'ai_budget_result' %}" class="btn btn-primary btn-block">Analyse Expenses</a>
+  </div>
+  <div class="col-md-6 mt-3">
+    <a href="{% url 'ai_weekly_result' %}" class="btn btn-primary btn-block">Generate Weekly Budget</a>
+  </div>
+  <div class="col-md-6 mt-3">
+    <a href="{% url 'ai_monthly_result' %}" class="btn btn-primary btn-block">Generate Monthly Budget</a>
+  </div>
 
 {% endblock content %}
