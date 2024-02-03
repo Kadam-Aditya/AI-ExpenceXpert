@@ -17,6 +17,32 @@ class ReportDate(models.Model):
     personal_care_budget = models.FloatField()
     housing_bills_budget = models.FloatField()
 
+class AiReportDate(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    total_weekly_budget = models.FloatField()
+    education_budget = models.FloatField()
+    medical_budget = models.FloatField()
+    food_budget = models.FloatField()
+    entertainment_budget = models.FloatField()
+    transport_budget = models.FloatField()
+    personal_care_budget = models.FloatField()
+    housing_bills_budget = models.FloatField()
+
+class AiReportDateM(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    total_monthly_budget = models.FloatField()
+    education_budget = models.FloatField()
+    medical_budget = models.FloatField()
+    food_budget = models.FloatField()
+    entertainment_budget = models.FloatField()
+    transport_budget = models.FloatField()
+    personal_care_budget = models.FloatField()
+    housing_bills_budget = models.FloatField()
+
 class Expense2(models.Model):
     amount = models.FloatField()
     date = models.DateField(default=now)

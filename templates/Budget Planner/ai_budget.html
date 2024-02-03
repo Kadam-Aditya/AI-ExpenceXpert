@@ -1,3 +1,4 @@
+
 {% extends 'base.html' %}
 {% load static %}
 
@@ -28,13 +29,14 @@
     You can generate a budget plan for a month as well as for a week.
   </p>
   <div class="col-md-6 mt-3">
-    <a href="{% url 'ai_budget_result' %}" class="btn btn-primary btn-block">Analyse Expenses</a>
-  </div>
-  <div class="col-md-6 mt-3">
-    <a href="{% url 'ai_weekly_result' %}" class="btn btn-primary btn-block">Generate Weekly Budget</a>
-  </div>
-  <div class="col-md-6 mt-3">
-    <a href="{% url 'ai_monthly_result' %}" class="btn btn-primary btn-block">Generate Monthly Budget</a>
+    <form method="post" action="{% url 'ai_budget_result' %}">
+      {% csrf_token %}
+      <button type="submit" name="ai_budget_result">Analyse Expenses</button>
+      <button type="submit" name="ai_weekly_result">Generate Weekly Budget</button>
+      <button type="submit" name="ai_monthly_result">Generate Monthly Budget</button>
+  </form>
+  <a href="{% url 'saved_ai_weekly_result'%}" class="btn btn-primary">Current weekly budget</a>
+  <a href="{% url 'saved_ai_monthly_result'%}" class="btn btn-primary">Current monthly budget</a>
   </div>
 
 {% endblock content %}

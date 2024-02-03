@@ -7,15 +7,15 @@
     <div class="col-md-10">
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a href="{% url 'Budget Planner'%}">Budget Planner</a>
-              </li>
-              <li class="breadcrumb-item active" aria-current="page">
-                <a href="{% url 'ai_budget'%}">AI budget</a>
-              </li>
-              <li class="breadcrumb-item active" aria-current="page">
-                AI Monthly budget
-              </li>
+          <li class="breadcrumb-item">
+            <a href="{% url 'Budget Planner'%}">Budget Planner</a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">
+            <a href="{% url 'ai_budget'%}">AI budget</a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">
+            AI Monthly budget
+          </li>
         </ol>
       </nav>
     </div>
@@ -24,9 +24,164 @@
       <a href="" class="btn btn-primary">BACK</a>
     </div>
 
-    <div class="col-md-12" style="margin-top: 100px;"> 
-      <h1 class="mb-4">Monthly budget</h1>
+    {% if error_message %}
+    <div class="alert alert-danger mt-3" role="alert">
+      {{ error_message }}
     </div>
+  {% endif %}
+
+  <h2>{{ budget_title }}</h2>
+  </div>
+  <h4>Personalised budget for this Month</h4>
+    <div class="mt-4">
+      <h4>Total budget</h4>
+      <p class="font-weight-bold text-success">{{ total_monthly_budget }}</p>
+    </div>
+    <div class="mt-4">
+      <h4>Total Expenses from {{ today_date }} to {{ date_after_30_days }}:</h4>
+      <p class="font-weight-bold text-success">{{ total_expenses }}</p>
+    </div>
+    <div class="mt-4">
+      <h4>Budget Remaining:</h4>
+      <p class="font-weight-bold text-info">{{ remaining_budget }}</p>
+    </div>
+    <div class="mt-4">
+      <h4>Expense Breakdown by Category:</h4>
+      <ul id="expenseList" class="list-group">
+        {% for category, expenses in expenses_by_category.items %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ category }}
+            <span class="badge badge-primary badge-pill">{{ expenses }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="mt-4">
+      <h4>Alloted budget for Education:</h4>
+      <p class="font-weight-bold text-info">{{ monthly_dictionary.Education }}</p>
+    </div>
+    <div class="mt-4">
+      <h4>Alloted budget for Medical:</h4>
+      <p class="font-weight-bold text-primary">{{ monthly_dictionary.Medical }}</p>
+    </div>
+    <div class="mt-4">
+      <h4>Alloted budget for Food:</h4>
+      <p class="font-weight-bold text-primary">{{ monthly_dictionary.Food }}</p>
+    </div>
+    <div class="mt-4">
+      <h4>Alloted budget for Entertainment:</h4>
+      <p class="font-weight-bold text-primary">{{ monthly_dictionary.Entertainment }}</p>
+    </div>
+    <div class="mt-4">
+      <h4>Alloted budget for Transport:</h4>
+      <p class="font-weight-bold text-primary">{{ monthly_dictionary.Transport }}</p>
+    </div>
+    <div class="mt-4">
+      <h4>Alloted budget for Personal Care:</h4>
+      <p class="font-weight-bold text-primary">{{ monthly_dictionary.Personal_Care }}</p>
+    </div>
+    <div class="mt-4">
+      <h4>Alloted budget for Housing/Bills:</h4>
+      <p class="font-weight-bold text-primary">{{ monthly_dictionary.Housing_Bills }}</p>
+    </div>
+    
+    <!-- Add an empty canvas element for the Chart.js chart -->
+    <div class="mt-4">
+      <h4>Expense Chart:</h4>
+      <canvas id="expenseChart" width="400" height="200"></canvas>
+    </div>
+
+    <div class="mt-4">
+      <button id="exitButton" class="btn btn-danger">Exit</button>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<!-- Replace your existing Chart.js script with this modified version -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var ctx = document.getElementById('expenseChart').getContext('2d');
+
+    // Extracted data from the JSON script in the context
+    var categories = Object.keys({{ expenses_by_category|safe }});
+    var expenses = Object.values({{ expenses_by_category|safe }});
+    var totalBudget = {{ total_monthly_budget|default:0 }};
+    
+    var categoryBudgets = {
+      'Education': {{ monthly_dictionary.Education|default:0 }},
+      'Medical': {{ monthly_dictionary.Medical|default:0 }},
+      'Food': {{ monthly_dictionary.Food|default:0 }},
+      'Entertainment': {{ monthly_dictionary.Entertainment|default:0 }},
+      'Transport': {{ monthly_dictionary.Transport|default:0 }},
+      'Personal_Care': {{ monthly_dictionary.Personal_Care|default:0 }},
+      'Housing_Bills': {{ monthly_dictionary.Housing_Bills|default:0 }},
+    };
+
+    var chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: categories,
+        datasets: [{
+          label: 'Expenses by Category',
+          data: expenses,
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+
+    // Check if expenses for each category exceed allotted budget
+    for (var i = 0; i < categories.length; i++) {
+      var category = categories[i];
+      var categoryExpense = expenses[i];
+      var categoryBudget = categoryBudgets[category];
+
+      if (categoryExpense > categoryBudget) {
+        // Display SweetAlert notification for each category
+        Swal.fire({
+          icon: 'warning',
+          title: 'Budget Exceeded',
+          text: 'Expenses for ' + category + ' have exceeded the allotted budget!',
+          confirmButtonText: 'OK',
+          allowOutsideClick: false
+        });
+      }
+    }
+
+    // Check if total expenses exceed total budget
+    var totalExpenses = {{ total_expenses|default:0 }};
+    if (totalExpenses > totalBudget) {
+      // Display SweetAlert notification for total budget
+      Swal.fire({
+        icon: 'warning',
+        title: 'Budget Exceeded',
+        text: 'Total expenses have exceeded the total budget!',
+        confirmButtonText: 'OK',
+        allowOutsideClick: false
+      });
+    }
+    document.getElementById('exitButton').addEventListener('click', function () {
+      // Add any additional logic or actions you want to perform before closing the template
+      // For example, you might want to redirect the user to another page
+
+      // Close the template
+      window.location.href = "{% url 'ai_budget' %}"; // This will close the current browser tab or window
+    });
+  });
+</script>
 
   </div>
 </div>

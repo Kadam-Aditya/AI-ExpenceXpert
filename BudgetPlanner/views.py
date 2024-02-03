@@ -1,30 +1,24 @@
 from datetime import datetime
-import os
 from pathlib import Path
 import pickle
-from django.conf import settings
+import matplotlib
+matplotlib.use('Agg')
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
 from .models import Expense
 from .models import ReportDate
+from .models import AiReportDate
+from .models import AiReportDateM
 import pandas as pd
-from statsmodels.tsa.arima.model import ARIMA
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error
 import matplotlib.pyplot as plt
-from joblib import load
 from datetime import timedelta
-from statsmodels.tsa.arima.model import ARIMA
-from sklearn.model_selection import train_test_split
 import base64
-import joblib
 import io
 import pandas as pd
-from statsmodels.tsa.statespace.sarimax import SARIMAX
-
+from datetime import timedelta
 from matplotlib.backends.backend_agg import FigureCanvasAgg
-print(pd.__version__)
 
 
 def calculate_total_expenses(user, start_date, end_date):
@@ -104,6 +98,77 @@ def saved_budgets_view1(request):
         })
     
     return render(request, 'Budget Planner/budget.html')
+
+
+def ai_saved_budgets_view(request):
+        user = request.user
+        ai_report_data = AiReportDate.objects.filter(user=user).first()  
+
+        start_date1 = ai_report_data.start_date
+        end_date1 = ai_report_data.end_date
+        education_budget = ai_report_data.education_budget
+        medical_budget = ai_report_data.medical_budget
+        food_budget = ai_report_data.food_budget
+        entertainment_budget = ai_report_data.entertainment_budget
+        transport_budget = ai_report_data.transport_budget
+        personal_care_budget = ai_report_data.personal_care_budget
+        housing_bills_budget = ai_report_data.housing_bills_budget
+        print(education_budget)
+
+        total_expenses = calculate_total_expenses(request.user, start_date1, end_date1)
+        budget_remaining = ai_report_data.total_weekly_budget - total_expenses
+        expenses_by_category = calculate_expenses_by_category(request.user, start_date1, end_date1)
+
+        return render(request, 'Budget Planner/saved_ai_weekly_result.html', {
+            'total_expenses': total_expenses,
+            'start_date': start_date1,
+            'end_date': end_date1,
+            'budget_remaining': budget_remaining,
+            'total_weekly_budget': ai_report_data.total_weekly_budget,
+            'expenses_by_category': expenses_by_category,
+            'education_budget': education_budget,
+            'medical_budget': medical_budget,
+            'food_budget': food_budget,
+            'entertainment_budget': entertainment_budget,
+            'transport_budget': transport_budget,
+            'personal_care_budget': personal_care_budget,
+            'housing_bills_budget': housing_bills_budget,
+        })
+
+
+def ai_saved_budgets_view_m(request):
+        user = request.user
+        ai_report_data = AiReportDateM.objects.filter(user=user).first()  
+
+        start_date1 = ai_report_data.start_date
+        end_date1 = ai_report_data.end_date
+        education_budget = ai_report_data.education_budget
+        medical_budget = ai_report_data.medical_budget
+        food_budget = ai_report_data.food_budget
+        entertainment_budget = ai_report_data.entertainment_budget
+        transport_budget = ai_report_data.transport_budget
+        personal_care_budget = ai_report_data.personal_care_budget
+        housing_bills_budget = ai_report_data.housing_bills_budget
+
+        total_expenses = calculate_total_expenses(request.user, start_date1, end_date1)
+        budget_remaining = ai_report_data.total_monthly_budget - total_expenses
+        expenses_by_category = calculate_expenses_by_category(request.user, start_date1, end_date1)
+
+        return render(request, 'Budget Planner/saved_ai_monthly_result.html', {
+            'total_expenses': total_expenses,
+            'start_date': start_date1,
+            'end_date': end_date1,
+            'budget_remaining': budget_remaining,
+            'total_monthly_budget': ai_report_data.total_monthly_budget,
+            'expenses_by_category': expenses_by_category,
+            'education_budget': education_budget,
+            'medical_budget': medical_budget,
+            'food_budget': food_budget,
+            'entertainment_budget': entertainment_budget,
+            'transport_budget': transport_budget,
+            'personal_care_budget': personal_care_budget,
+            'housing_bills_budget': housing_bills_budget,
+        })
 
 def generate_report_view(request):
     if request.method == 'POST':
@@ -219,12 +284,6 @@ def edit_budget(request, budget_id):
     return render(request, 'Budget Planner/edit_budget.html', {'budget': budget})
 
 
-hyperparameters_dict = {
-    'p': 2,
-    'd': 1,
-    'q': 5,
-}
-
 # model = load('D:/ExpenceXpert/ExpenceAI/ARIMA_Model/model.joblib')
 models_path = Path('D:/ExpenceXpert/ExpenceAI/ARIMA_Model/models_dict_aggregated.pkl')
 params_path = Path('D:/ExpenceXpert/ExpenceAI/ARIMA_Model/best_params_dict_aggregated.pkl')
@@ -244,6 +303,10 @@ def generate_budget_plan(user_expenses):
         categories = user_expenses['category'].unique()
         print(categories)
         predictions = {}
+        total_last_four_predictions_dict = {}
+        second_predictions = {}
+        grand_total_last_four_predictions = 0
+        second_predictions_grand_total = 0
 
         try:
 
@@ -261,10 +324,20 @@ def generate_budget_plan(user_expenses):
                 print('results',results)
                 print(results.summary())
                 # forecast = results.get_forecast(steps=7) 
-                forecast = results.get_prediction(start=ts_data_aggregated_category.index.min(),
-                                                  end=ts_data_aggregated_category.index.max() + pd.Timedelta(days=6))
+                start_date = pd.Timestamp.today().normalize()-pd.DateOffset(days=7)
+                print(start_date)
+                forecast = results.get_prediction(start=start_date,
+                                                  end=ts_data_aggregated_category.index.max() + pd.Timedelta(days=28))
                 predicted_values = forecast.predicted_mean.astype(int)
                 print('predicted',predicted_values)
+
+                last_four_predictions = predicted_values[-4:]
+                total_last_four_predictions = last_four_predictions.sum()
+                print(total_last_four_predictions)
+                total_last_four_predictions_dict[category] = total_last_four_predictions
+
+                second_prediction_value = predicted_values.iloc[1]
+                second_predictions[category] = second_prediction_value
 
                 fig, ax = plt.subplots(figsize=(10, 6))
                 ax.plot(ts_data_aggregated_category.index, ts_data_aggregated_category, label='User Expenses (Aggregated)')
@@ -285,7 +358,7 @@ def generate_budget_plan(user_expenses):
                 predictions[category] = {
                     'user_expenses': ts_data_aggregated_category.tolist(),
                     'predicted_values': predicted_values,
-                    'plot_image': encoded_image
+                    'plot_image': encoded_image,
                 }
 
         except Exception as e:
@@ -295,7 +368,21 @@ def generate_budget_plan(user_expenses):
         finally:
             plt.close()
 
-        return predictions
+        grand_total_last_four_predictions = sum(total_last_four_predictions_dict.values())
+        print(grand_total_last_four_predictions)
+        second_predictions_grand_total = sum(second_predictions.values())
+        print(second_predictions_grand_total)
+
+        
+        return {
+            'predictions': {
+                'predictions': predictions,
+                'second_predictions_grand_total': second_predictions_grand_total,
+                'grand_total_last_four_predictions': grand_total_last_four_predictions,
+                'second_predictions': second_predictions,
+                'total_last_four_predictions_dict': total_last_four_predictions_dict,
+            },
+        }
     else:
         return {'error': 'Category column not found in the DataFrame'}
 
@@ -308,19 +395,106 @@ def budget_planner(request):
     # Convert user_expenses to a DataFrame
     user_expenses_df = pd.DataFrame(user_expenses)
 
-    # Pass user expenses to the ARIMA model to get predictions
-    predictions = generate_budget_plan(user_expenses_df)
 
-    if 'error' in predictions:
+    result = generate_budget_plan(user_expenses_df)
+
+
+
+    if 'error' in result:
         # Handle the case where the 'category' column is not found
-        return render(request, 'Budget Planner/ai_budget_result.html', {'error_message': predictions['error']})
+        return render(request, 'Budget Planner/ai_budget_result.html', {'error_message': result['error']})
     else:
-        # Render the template with predictions
-        return render(request, 'Budget Planner/ai_budget_result.html', {'predictions': predictions})
+        if 'ai_budget_result' in request.POST:
+            # Render the template with predictions
+            return render(request, 'Budget Planner/ai_budget_result.html', {'predictions': result['predictions']['predictions']})
+        elif 'ai_weekly_result' in request.POST:
+
+            AiReportDate.objects.filter(user=request.user).delete()
+
+            today_date = datetime.today().date()
+            date_after_six_days = today_date + timedelta(days=6)
+            total_weekly_budget = result['predictions']['second_predictions_grand_total']
+            weekly_dictionary = result['predictions']['second_predictions']
+            total_expenses = calculate_total_expenses(request.user, today_date, date_after_six_days)
+
+            remaining_budget = total_weekly_budget - total_expenses
+            expenses_by_category = calculate_expenses_by_category(request.user, today_date, date_after_six_days)
+            display_names_mapping = {
+                'Personal care': 'Personal_Care',
+                'Housing/Bills': 'Housing_Bills',
+            }
+
+            weekly_dictionary = {display_names_mapping.get(k, k): v for k, v in weekly_dictionary.items()}
+
+            report = AiReportDate(
+                user=request.user,
+                start_date=today_date,
+                end_date=date_after_six_days,
+                total_weekly_budget=float(total_weekly_budget),
+                education_budget=float(weekly_dictionary['Education']),
+                medical_budget = float(weekly_dictionary['Medical']),
+                food_budget = float(weekly_dictionary['Food']),
+                entertainment_budget = float(weekly_dictionary['Entertainment']),
+                transport_budget = float(weekly_dictionary['Transport']),
+                personal_care_budget = float(weekly_dictionary['Personal_Care']),
+                housing_bills_budget = float(weekly_dictionary['Housing_Bills']),
+
+                )
+            report.save()
 
 
-def generate_weekly_view(request):
-    return render(request, 'Budget Planner/ai_weekly_result.html')
+            return render(request, 'Budget Planner/ai_weekly_result.html', {
+                'total_weekly_budget': total_weekly_budget,
+                'weekly_dictionary': weekly_dictionary,
+                'today_date': today_date,
+                'date_after_six_days': date_after_six_days,
+                'total_expenses': total_expenses,
+                'remaining_budget': remaining_budget,
+                'expenses_by_category': expenses_by_category,
+            })
+        elif 'ai_monthly_result' in request.POST:
+            AiReportDateM.objects.filter(user=request.user).delete()
 
-def generate_monthly_view(request):
-    return render(request, 'Budget Planner/ai_monthly_result.html')
+            total_monthly_budget = result['predictions']['grand_total_last_four_predictions']
+            monthly_dictionary = result['predictions']['total_last_four_predictions_dict']
+            today_date = datetime.today().date()
+            date_after_30_days = today_date + timedelta(days=29)
+            total_expenses = calculate_total_expenses(request.user, today_date, date_after_30_days)
+            remaining_budget = total_monthly_budget - total_expenses
+            expenses_by_category = calculate_expenses_by_category(request.user, today_date, date_after_30_days)
+
+            display_names_mapping = {
+                'Personal care': 'Personal_Care',
+                'Housing/Bills': 'Housing_Bills',
+            }
+
+            monthly_dictionary = {display_names_mapping.get(k, k): v for k, v in monthly_dictionary.items()}
+
+            report = AiReportDateM(
+                user=request.user,
+                start_date=today_date,
+                end_date=date_after_30_days,
+                total_monthly_budget=float(total_monthly_budget),
+                education_budget=float(monthly_dictionary['Education']),
+                medical_budget = float(monthly_dictionary['Medical']),
+                food_budget = float(monthly_dictionary['Food']),
+                entertainment_budget = float(monthly_dictionary['Entertainment']),
+                transport_budget = float(monthly_dictionary['Transport']),
+                personal_care_budget = float(monthly_dictionary['Personal_Care']),
+                housing_bills_budget = float(monthly_dictionary['Housing_Bills']),
+
+                )
+            report.save()
+
+            return render(request, 'Budget Planner/ai_monthly_result.html', {
+                'total_monthly_budget': total_monthly_budget,
+                'monthly_dictionary': monthly_dictionary,
+                'today_date': today_date,
+                'date_after_30_days': date_after_30_days,
+                'total_expenses': total_expenses,
+                'remaining_budget': remaining_budget,
+                'expenses_by_category': expenses_by_category,
+                })
+        else:
+            # Handle cases where none of the buttons were clicked
+            return HttpResponse("Invalid request")

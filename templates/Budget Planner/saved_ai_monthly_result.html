@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-10">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a href="{% url 'Budget Planner'%}">Budget Planner</a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">
+            <a href="{% url 'budget'%}">Manual budget</a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">
+            My Budget
+          </li>
+        </ol>
+      </nav>
+    </div>
+
+    <div class="col-md-2">
+      <a href="{% url 'Budget Planner'%}" class="btn btn-primary">BACK</a>
+    </div>
+  </div>
+
+  {% if error_message %}
+    <div class="alert alert-danger mt-3" role="alert">
+      {{ error_message }}
+    </div>
+  {% endif %}
+
+  {% if total_expenses is not None %}
+  <h2>{{ budget_title }}</h2>
+  </div>
+    <div class="mt-4">
+      <h4>Total Expenses from {{ start_date }} to {{ end_date }}:</h4>
+      <p class="font-weight-bold text-success">{{ total_expenses }}</p>
+    </div>
+    <div class="mt-4">
+      <h4>Budget Remaining:</h4>
+      <p class="font-weight-bold text-info">{{ budget_remaining }}</p>
+    </div>
+    <div class="mt-4">
+      <h4>Total Budget:</h4>
+      <p class="font-weight-bold text-primary">{{ total_monthly_budget }}</p>
+    </div>
+    <div class="mt-4">
+      <h4>Expense Breakdown by Category:</h4>
+      <ul id="expenseList" class="list-group">
+        {% for category, expenses in expenses_by_category.items %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ category }}
+            <span class="badge badge-primary badge-pill">{{ expenses }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+  <div class="mt-4">
+    <h4>Alloted budget for Education:</h4>
+    <p class="font-weight-bold text-info">{{ education_budget }}</p>
+  </div>
+  <div class="mt-4">
+    <h4>Alloted budget for Medical:</h4>
+    <p class="font-weight-bold text-primary">{{ medical_budget }}</p>
+  </div>
+  <div class="mt-4">
+    <h4>Alloted budget for Food:</h4>
+    <p class="font-weight-bold text-primary">{{ food_budget }}</p>
+  </div>
+  <div class="mt-4">
+    <h4>Alloted budget for Entertainment:</h4>
+    <p class="font-weight-bold text-primary">{{ entertainment_budget }}</p>
+  </div>
+  <div class="mt-4">
+    <h4>Alloted budget for Transport:</h4>
+    <p class="font-weight-bold text-primary">{{ transport_budget }}</p>
+  </div>
+  <div class="mt-4">
+    <h4>Alloted budget for Personal Care:</h4>
+    <p class="font-weight-bold text-primary">{{ personal_care_budget }}</p>
+  </div>
+  <div class="mt-4">
+    <h4>Alloted budget for Housing/Bills:</h4>
+    <p class="font-weight-bold text-primary">{{ housing_bills_budget }}</p>
+  </div>
+    
+    <!-- Add an empty canvas element for the Chart.js chart -->
+    <div class="mt-4">
+      <h4>Expense Chart:</h4>
+      <canvas id="expenseChart" width="400" height="200"></canvas>
+    </div>
+  {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<!-- Replace your existing Chart.js script with this modified version -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+      var ctx = document.getElementById('expenseChart').getContext('2d');
+  
+      // Extracted data from the JSON script in the context
+      var categories = Object.keys({{ expenses_by_category|safe }});
+      var expenses = Object.values({{ expenses_by_category|safe }});
+      var totalBudget = {{ total_monthly_budget|default:0 }};
+      var categoryBudgets = {
+          'Education': {{ education_budget|default:0 }},
+          'Medical': {{ medical_budget|default:0 }},
+          'Food': {{ food_budget|default:0 }},
+          'Entertainment': {{ entertainment_budget|default:0 }},
+          'Transport': {{ transport_budget|default:0 }},
+          'Personal Care': {{ personal_care_budget|default:0 }},
+          'Housing/Bills': {{ housing_bills_budget|default:0 }},
+      };
+  
+      var chart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+              labels: categories,
+              datasets: [{
+                  label: 'Expenses by Category',
+                  data: expenses,
+                  backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                  borderColor: 'rgba(75, 192, 192, 1)',
+                  borderWidth: 1
+              }]
+          },
+          options: {
+              scales: {
+                  y: {
+                      beginAtZero: true
+                  }
+              }
+          }
+      });
+  
+      // Check if expenses for each category exceed allotted budget
+      for (var i = 0; i < categories.length; i++) {
+          var category = categories[i];
+          var categoryExpense = expenses[i];
+          var categoryBudget = categoryBudgets[category];
+  
+          if (categoryExpense > categoryBudget) {
+              // Display SweetAlert notification for each category
+              Swal.fire({
+                  icon: 'warning',
+                  title: 'Budget Exceeded',
+                  text: 'Expenses for ' + category + ' have exceeded the allotted budget!',
+                  confirmButtonText: 'OK',
+                  allowOutsideClick: false
+              });
+          }
+      }
+  
+      // Check if total expenses exceed total budget
+      var totalExpenses = {{ total_expenses|default:0 }};
+      if (totalExpenses > totalBudget) {
+          // Display SweetAlert notification for total budget
+          Swal.fire({
+              icon: 'warning',
+              title: 'Budget Exceeded',
+              text: 'Total expenses have exceeded the total budget!',
+              confirmButtonText: 'OK',
+              allowOutsideClick: false
+          });
+      }
+  });
+  </script>
+  
+
+
+{% endblock content %}
